@@ -11,9 +11,9 @@ import org.springframework.stereotype.Repository;
 public interface QuestionRepository extends JpaRepository<Question, String> {
 
     @Query("SELECT q FROM Question q WHERE " +
-           "(:question IS NULL OR q.question LIKE %:question%) AND " +
+           "(:question IS NULL OR LOWER(q.question) LIKE LOWER(CONCAT('%', :question, '%'))) AND " +
            "(:lang IS NULL OR q.lang = :lang) AND " +
-           "(:tags IS NULL OR q.tags LIKE %:tags%) AND " +
+           "(:tags IS NULL OR LOWER(q.tags) LIKE LOWER(CONCAT('%', :tags, '%'))) AND " +
            "(:isActive IS NULL OR q.isActive = :isActive)")
     Page<Question> search(
             @Param("question") String question,

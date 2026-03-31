@@ -1,7 +1,6 @@
 package org.ganjp.api.cms.video;
 
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.ganjp.api.cms.util.CmsUtil;
 import org.ganjp.api.core.model.PaginatedResponse;
 import org.springframework.beans.factory.annotation.Value;
@@ -18,7 +17,6 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-@Slf4j
 @Transactional(readOnly = true)
 public class VideoService {
     private final VideoRepository videoRepository;
@@ -27,13 +25,14 @@ public class VideoService {
     @Value("${video.base-url:}")
     private String videoBaseUrl;
 
+    @Value("${video.cover-image.base-url:}")
+    private String videoCoverImageBaseUrl;
+
     public PaginatedResponse<VideoResponse> getVideos(String name, Video.Language lang, String tags, Boolean isActive, int page, int size, String sort, String direction) {
         Pageable pageable = CmsUtil.buildPageable(page, size, sort, direction);
         Page<Video> pageResult = videoRepository.searchVideos(name, lang, tags, isActive, pageable);
-
-        List<VideoResponse> publicList = pageResult.getContent().stream().map(this::mapToResponse).toList();
-
-        return PaginatedResponse.of(publicList, pageResult.getNumber(), pageResult.getSize(), pageResult.getTotalElements());
+        List<VideoResponse> list = pageResult.getContent().stream().map(this::mapToResponse).toList();
+        return PaginatedResponse.of(list, pageResult.getNumber(), pageResult.getSize(), pageResult.getTotalElements());
     }
 
     public VideoResponse getVideoById(String id) {
@@ -70,7 +69,7 @@ public class VideoService {
                 .displayOrder(r.getDisplayOrder())
                 .updatedAt(r.getUpdatedAt() != null ? r.getUpdatedAt().toString() : null)
                 .url(CmsUtil.joinBaseAndPath(videoBaseUrl, r.getFilename()))
-                .coverImageUrl(CmsUtil.joinBasePathWithSegment(videoBaseUrl, "cover-images", r.getCoverImageFilename()))
+                .coverImageUrl(CmsUtil.joinBaseAndPath(videoCoverImageBaseUrl, r.getCoverImageFilename()))
                 .build();
     }
 }

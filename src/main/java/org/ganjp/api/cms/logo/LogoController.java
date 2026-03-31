@@ -2,11 +2,19 @@ package org.ganjp.api.cms.logo;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.ganjp.api.cms.util.CmsUtil;
 import org.ganjp.api.core.model.ApiResponse;
 import org.ganjp.api.core.model.PaginatedResponse;
+import org.springframework.core.io.FileSystemResource;
+import org.springframework.core.io.Resource;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Locale;
+import java.io.File;
+import java.io.IOException;
 
 @RestController
 @RequestMapping("/v1/logos")
@@ -25,25 +33,39 @@ public class LogoController {
             @RequestParam(defaultValue = "20") int size,
             @RequestParam(defaultValue = "displayOrder") String sort,
             @RequestParam(defaultValue = "asc") String direction) {
-        Logo.Language l = parseLanguage(lang, Logo.Language.class);
-        if (lang != null && !lang.isBlank() && l == null) return ApiResponse.error(400, "Invalid lang", null);
-        var resp = logoService.getLogos(name, l, tags, isActive, page, size, sort, direction);
-        return ApiResponse.success(resp, "Logos retrieved");
+        Logo.Language language = CmsUtil.parseLanguage(lang, Logo.Language.class);
+        if (lang != null && !lang.isBlank() && language == null) {
+            return ApiResponse.error(400, "Invalid lang", null);
+        }
+        return ApiResponse.success(
+                logoService.getLogos(name, language, tags, isActive, page, size, sort, direction),
+                "Logos retrieved");
     }
 
     @GetMapping("/{id}")
     public ApiResponse<LogoResponse> getLogoById(@PathVariable String id) {
-        LogoResponse r = logoService.getLogoById(id);
-        if (r == null) return ApiResponse.error(404, "Logo not found", null);
-        return ApiResponse.success(r, "Logo retrieved");
+        LogoResponse resp = logoService.getLogoById(id);
+        if (resp == null) {
+            return ApiResponse.error(404, "Logo not found", null);
+        }
+        return ApiResponse.success(resp, "Logo retrieved");
     }
 
-    private <E extends Enum<E>> E parseLanguage(String lang, Class<E> enumClass) {
-        if (lang == null || lang.isBlank()) return null;
+    @GetMapping("/view/{filename}")
+    public ResponseEntity<Resource> viewLogo(@PathVariable String filename) {
         try {
-            return Enum.valueOf(enumClass, lang.toUpperCase(Locale.ROOT));
-        } catch (IllegalArgumentException ex) {
-            return null;
+            CmsUtil.validateFilename(filename);
+            File file = logoService.getLogoFile(filename);
+            Resource resource = new FileSystemResource(file);
+            return ResponseEntity.ok()
+                    .contentType(MediaType.parseMediaType(CmsUtil.determineContentType(filename)))
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + filename + "\"")
+                    .body(resource);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        } catch (IOException e) {
+            log.error("Error reading logo file: {}", filename, e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
 }

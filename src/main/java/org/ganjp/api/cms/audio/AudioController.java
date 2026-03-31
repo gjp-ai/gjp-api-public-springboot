@@ -18,7 +18,6 @@ import org.springframework.web.bind.annotation.*;
 import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
-import java.util.Locale;
 
 @RestController
 @RequestMapping("/v1/audios")
@@ -37,10 +36,13 @@ public class AudioController {
             @RequestParam(defaultValue = "20") int size,
             @RequestParam(defaultValue = "displayOrder") String sort,
             @RequestParam(defaultValue = "asc") String direction) {
-        Audio.Language l = parseLanguage(lang, Audio.Language.class);
-        if (lang != null && !lang.isBlank() && l == null) return ApiResponse.error(400, "Invalid lang", null);
-        var resp = audioService.getAudios(name, l, tags, isActive, page, size, sort, direction);
-        return ApiResponse.success(resp, "Audios retrieved");
+        Audio.Language language = CmsUtil.parseLanguage(lang, Audio.Language.class);
+        if (lang != null && !lang.isBlank() && language == null) {
+            return ApiResponse.error(400, "Invalid lang", null);
+        }
+        return ApiResponse.success(
+                audioService.getAudios(name, language, tags, isActive, page, size, sort, direction),
+                "Audios retrieved");
     }
 
     @GetMapping("/{id}")
@@ -54,6 +56,7 @@ public class AudioController {
     public ResponseEntity<?> viewAudio(@PathVariable String filename,
                                        @RequestHeader(value = "Range", required = false) String rangeHeader) {
         try {
+            CmsUtil.validateFilename(filename);
             return serveStreamable(audioService.getAudioFile(filename), filename, rangeHeader);
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
@@ -66,23 +69,19 @@ public class AudioController {
     @GetMapping("/cover-images/{filename}")
     public ResponseEntity<Resource> viewAudioCoverImage(@PathVariable String filename) {
         try {
+            CmsUtil.validateFilename(filename);
             File file = audioService.getAudioCoverFile(filename);
-            return serveInline(file, filename);
+            Resource resource = new FileSystemResource(file);
+            return ResponseEntity.ok()
+                    .contentType(MediaType.parseMediaType(CmsUtil.determineContentType(filename)))
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + filename + "\"")
+                    .body(resource);
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         } catch (IOException e) {
             log.error("Error reading audio cover image: {}", filename, e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
-    }
-
-    private ResponseEntity<Resource> serveInline(File file, String filename) {
-        Resource resource = new FileSystemResource(file);
-        String contentType = CmsUtil.determineContentType(filename);
-        return ResponseEntity.ok()
-                .contentType(MediaType.parseMediaType(contentType))
-                .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + filename + "\"")
-                .body(resource);
     }
 
     private ResponseEntity<?> serveStreamable(File file, String filename, String rangeHeader) throws IOException {
@@ -118,8 +117,14 @@ public class AudioController {
         private long remaining;
 
         RangeInputStream(File file, long start, long length) throws IOException {
-            this.raf = new RandomAccessFile(file, "r");
-            this.raf.seek(start);
+            RandomAccessFile f = new RandomAccessFile(file, "r");
+            try {
+                f.seek(start);
+            } catch (IOException e) {
+                f.close();
+                throw e;
+            }
+            this.raf = f;
             this.remaining = length;
         }
 
@@ -142,16 +147,7 @@ public class AudioController {
 
         @Override
         public void close() throws IOException {
-            try { raf.close(); } finally { super.close(); }
-        }
-    }
-
-    private <E extends Enum<E>> E parseLanguage(String lang, Class<E> enumClass) {
-        if (lang == null || lang.isBlank()) return null;
-        try {
-            return Enum.valueOf(enumClass, lang.toUpperCase(Locale.ROOT));
-        } catch (IllegalArgumentException ex) {
-            return null;
+            raf.close();
         }
     }
 }

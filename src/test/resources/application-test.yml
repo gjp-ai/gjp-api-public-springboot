@@ -1,0 +1,74 @@
+server:
+  servlet:
+    context-path: ""
+
+spring:
+  main:
+    allow-bean-definition-overriding: true
+  datasource:
+    url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE;MODE=MySQL
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+  jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: true
+
+cms:
+  base-url: http://localhost:8081/api
+  upload:
+    root-directory: target/test-uploads
+
+article:
+  cover-image:
+    base-url: ${cms.base-url}/v1/articles/cover-images/
+    upload:
+      directory: ${cms.upload.root-directory}/articles/cover-images
+  content-image:
+    base-url: ${cms.base-url}/v1/articles/content-images/
+    upload:
+      directory: ${cms.upload.root-directory}/articles/content-images
+
+audio:
+  base-url: ${cms.base-url}/v1/audios/
+  cover-image:
+    base-url: ${cms.base-url}/v1/audios/cover-images/
+  upload:
+    directory: ${cms.upload.root-directory}/audios
+
+video:
+  base-url: ${cms.base-url}/v1/videos/
+  cover-image:
+    base-url: ${cms.base-url}/v1/videos/cover-images/
+  upload:
+    directory: ${cms.upload.root-directory}/videos
+    max-file-size: 524288000
+    cover-image:
+      max-size: 600
+    download:
+      max-resolution: 720
+
+image:
+  base-url: ${cms.base-url}/v1/images/view/
+  upload:
+    directory: ${cms.upload.root-directory}/images
+    max-file-size: 10485760
+    resize:
+      max-size: 1200
+      thumbnail-size: 400
+
+file:
+  base-url: ${cms.base-url}/v1/files/view/
+  upload:
+    directory: ${cms.upload.root-directory}/files
+    max-file-size: 52428800
+
+logo:
+  base-url: ${cms.base-url}/v1/logos/view/
+  upload:
+    directory: ${cms.upload.root-directory}/logos
+    max-file-size: 5242880
+    resize:
+      target-size: 256

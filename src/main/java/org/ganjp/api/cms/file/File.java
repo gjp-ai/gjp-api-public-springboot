@@ -1,13 +1,15 @@
 package org.ganjp.api.cms.file;
 
 import jakarta.persistence.*;
-import lombok.Data;
-
+import lombok.*;
 import java.sql.Timestamp;
 
 @Entity
 @Table(name = "cms_file")
 @Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class File {
     @Id
     private String id;
@@ -35,9 +37,11 @@ public class File {
     public enum Language { EN, ZH }
 
     @Enumerated(EnumType.STRING)
+    @Builder.Default
     private Language lang = Language.EN;
 
     @Column(name = "display_order")
+    @Builder.Default
     private Integer displayOrder = 0;
 
     @Column(name = "created_at")
@@ -53,5 +57,6 @@ public class File {
     private String updatedBy;
 
     @Column(name = "is_active")
+    @Builder.Default
     private Boolean isActive = true;
 }

@@ -4,7 +4,6 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.ganjp.api.cms.file.File;
 
 @Data
 @Builder
@@ -13,7 +12,6 @@ import org.ganjp.api.cms.file.File;
 public class FileResponse {
     private String id;
     private String name;
-    private String description;
     private String url;
     private String originalUrl;
     private String tags;

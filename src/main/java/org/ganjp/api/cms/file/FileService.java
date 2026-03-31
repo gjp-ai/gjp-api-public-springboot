@@ -1,7 +1,6 @@
 package org.ganjp.api.cms.file;
 
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.ganjp.api.cms.util.CmsUtil;
 import org.ganjp.api.core.model.PaginatedResponse;
 import org.springframework.beans.factory.annotation.Value;
@@ -18,7 +17,6 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-@Slf4j
 @Transactional(readOnly = true)
 public class FileService {
     private final FileRepository fileRepository;
@@ -30,38 +28,14 @@ public class FileService {
     public PaginatedResponse<FileResponse> getFiles(String name, org.ganjp.api.cms.file.File.Language lang, String tags, Boolean isActive, int page, int size, String sort, String direction) {
         Pageable pageable = CmsUtil.buildPageable(page, size, sort, direction);
         Page<org.ganjp.api.cms.file.File> pageResult = fileRepository.searchFiles(name, lang, tags, isActive, pageable);
-
-        List<FileResponse> publicList = pageResult.getContent().stream().map(r ->
-            FileResponse.builder()
-                .id(r.getId())
-                .name(r.getName())
-                .description(null)
-                .originalUrl(r.getOriginalUrl())
-                .tags(r.getTags())
-                .lang(r.getLang())
-                .displayOrder(r.getDisplayOrder())
-                .updatedAt(r.getUpdatedAt() != null ? r.getUpdatedAt().toString() : null)
-                .url(CmsUtil.joinBaseAndPath(fileBaseUrl, r.getFilename()))
-                .build()
-        ).toList();
-
-        return PaginatedResponse.of(publicList, pageResult.getNumber(), pageResult.getSize(), pageResult.getTotalElements());
+        List<FileResponse> list = pageResult.getContent().stream().map(this::mapToResponse).toList();
+        return PaginatedResponse.of(list, pageResult.getNumber(), pageResult.getSize(), pageResult.getTotalElements());
     }
 
     public FileResponse getFileById(String id) {
-        org.ganjp.api.cms.file.File r = fileRepository.findById(id).orElse(null);
-        if (r == null) return null;
-        return FileResponse.builder()
-            .id(r.getId())
-            .name(r.getName())
-            .description(null)
-            .originalUrl(r.getOriginalUrl())
-            .tags(r.getTags())
-            .lang(r.getLang())
-            .displayOrder(r.getDisplayOrder())
-            .updatedAt(r.getUpdatedAt() != null ? r.getUpdatedAt().toString() : null)
-            .url(CmsUtil.joinBaseAndPath(fileBaseUrl, r.getFilename()))
-            .build();
+        return fileRepository.findById(id)
+                .map(this::mapToResponse)
+                .orElse(null);
     }
 
     public File getFileResource(String filename) throws IOException {
@@ -71,5 +45,18 @@ public class FileService {
         Path p = Path.of(uploadProperties.getDirectory(), filename);
         if (!Files.exists(p)) throw new IllegalArgumentException("File not found: " + filename);
         return p.toFile();
+    }
+
+    private FileResponse mapToResponse(org.ganjp.api.cms.file.File r) {
+        return FileResponse.builder()
+                .id(r.getId())
+                .name(r.getName())
+                .originalUrl(r.getOriginalUrl())
+                .tags(r.getTags())
+                .lang(r.getLang())
+                .displayOrder(r.getDisplayOrder())
+                .updatedAt(r.getUpdatedAt() != null ? r.getUpdatedAt().toString() : null)
+                .url(CmsUtil.joinBaseAndPath(fileBaseUrl, r.getFilename()))
+                .build();
     }
 }

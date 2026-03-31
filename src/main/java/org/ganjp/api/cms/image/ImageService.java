@@ -1,7 +1,6 @@
 package org.ganjp.api.cms.image;
 
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.ganjp.api.cms.util.CmsUtil;
 import org.ganjp.api.core.model.PaginatedResponse;
 import org.springframework.beans.factory.annotation.Value;
@@ -16,11 +15,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
-@Slf4j
 @Transactional(readOnly = true)
 public class ImageService {
     private final ImageRepository imageRepository;
@@ -32,10 +29,8 @@ public class ImageService {
     public PaginatedResponse<ImageResponse> getImages(String name, Image.Language lang, String tags, Boolean isActive, int page, int size, String sort, String direction) {
         Pageable pageable = CmsUtil.buildPageable(page, size, sort, direction);
         Page<Image> pageResult = imageRepository.searchImages(name, lang, tags, isActive, pageable);
-
-        List<ImageResponse> publicList = pageResult.getContent().stream().map(this::mapToResponse).toList();
-
-        return PaginatedResponse.of(publicList, pageResult.getNumber(), pageResult.getSize(), pageResult.getTotalElements());
+        List<ImageResponse> list = pageResult.getContent().stream().map(this::mapToResponse).toList();
+        return PaginatedResponse.of(list, pageResult.getNumber(), pageResult.getSize(), pageResult.getTotalElements());
     }
 
     public ImageResponse getImageById(String id) {
@@ -46,7 +41,7 @@ public class ImageService {
 
     public File getImageFile(String filename) throws IOException {
         imageRepository.findByFilenameAndIsActiveTrue(filename)
-            .orElseThrow(() -> new IllegalArgumentException("Image not found or not active: " + filename));
+                .orElseThrow(() -> new IllegalArgumentException("Image not found or not active: " + filename));
 
         Path fullPath = Paths.get(imageUploadProperties.getDirectory()).resolve(filename);
         if (!Files.exists(fullPath)) {

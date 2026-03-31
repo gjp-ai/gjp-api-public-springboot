@@ -1,0 +1,121 @@
+package org.ganjp.api.cms.audio;
+
+import org.ganjp.api.core.model.PaginatedResponse;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.web.servlet.MockMvc;
+
+import java.io.IOException;
+import java.util.List;
+
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.isNull;
+import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+@WebMvcTest(AudioController.class)
+class AudioControllerTest {
+
+    @Autowired
+    private MockMvc mockMvc;
+
+    @MockitoBean
+    private AudioService audioService;
+
+    @Test
+    void should_returnPaginatedAudios_when_getAudios() throws Exception {
+        // Given
+        AudioResponse audioResponse = AudioResponse.builder()
+                .id("abc-123")
+                .title("Controller Test")
+                .build();
+
+        PaginatedResponse<AudioResponse> paginatedData = PaginatedResponse.of(
+                List.of(audioResponse), 0, 20, 1
+        );
+
+        when(audioService.getAudios(isNull(), isNull(), isNull(), isNull(), anyInt(), anyInt(), anyString(), anyString()))
+                .thenReturn(paginatedData);
+
+        // When & Then
+        mockMvc.perform(get("/v1/audios"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status.code").value(200))
+                .andExpect(jsonPath("$.data.content[0].id").value("abc-123"))
+                .andExpect(jsonPath("$.data.totalElements").value(1));
+    }
+
+    @Test
+    void should_returnBadRequest_when_invalidLanguage() throws Exception {
+        // When & Then
+        mockMvc.perform(get("/v1/audios?lang=INVALID_LANG"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status.code").value(400))
+                .andExpect(jsonPath("$.status.message").value("Invalid lang"));
+    }
+
+    @Test
+    void should_returnAudioDetail_when_foundById() throws Exception {
+        // Given
+        AudioResponse detailResponse = AudioResponse.builder()
+                .id("def-456")
+                .title("Detail View")
+                .build();
+
+        when(audioService.getAudioById("def-456")).thenReturn(detailResponse);
+
+        // When & Then
+        mockMvc.perform(get("/v1/audios/def-456"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status.code").value(200))
+                .andExpect(jsonPath("$.data.id").value("def-456"))
+                .andExpect(jsonPath("$.data.title").value("Detail View"));
+    }
+
+    @Test
+    void should_returnNotFound_when_audioIdDoesNotExist() throws Exception {
+        // Given
+        when(audioService.getAudioById("not-found")).thenReturn(null);
+
+        // When & Then
+        mockMvc.perform(get("/v1/audios/not-found"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status.code").value(404))
+                .andExpect(jsonPath("$.status.message").value("Audio not found"));
+    }
+
+    @Test
+    void should_return404_when_servingMissingAudioFile() throws Exception {
+        // Given
+        when(audioService.getAudioFile("ghost.mp3")).thenThrow(new IllegalArgumentException("Not found"));
+
+        // When & Then
+        mockMvc.perform(get("/v1/audios/view/ghost.mp3"))
+                .andExpect(status().isNotFound()); // The exception block maps to 404
+    }
+
+    @Test
+    void should_return500_when_IOErrorReadingAudioFile() throws Exception {
+        // Given
+        when(audioService.getAudioFile("corrupted.mp3")).thenThrow(new IOException("Disk error"));
+
+        // When & Then
+        mockMvc.perform(get("/v1/audios/view/corrupted.mp3"))
+                .andExpect(status().isInternalServerError());
+    }
+
+    @Test
+    void should_return404_when_servingMissingCoverImage() throws Exception {
+        // Given
+        when(audioService.getAudioCoverFile("missing.jpg")).thenThrow(new IllegalArgumentException("Not found"));
+
+        // When & Then
+        mockMvc.perform(get("/v1/audios/cover-images/missing.jpg"))
+                .andExpect(status().isNotFound());
+    }
+}

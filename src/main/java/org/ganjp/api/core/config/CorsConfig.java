@@ -13,15 +13,17 @@ import java.util.List;
 @Data
 public class CorsConfig implements WebMvcConfigurer {
 
-    private List<String> allowedOrigins;
+    private List<String> allowedOrigins = List.of("*");
 
     @Override
     public void addCorsMappings(CorsRegistry registry) {
-        registry.addMapping("/**")
-                .allowedOrigins(allowedOrigins.toArray(new String[0]))
+        if (allowedOrigins != null && !allowedOrigins.isEmpty()) {
+            registry.addMapping("/**")
+                .allowedOriginPatterns(allowedOrigins.toArray(new String[0]))
                 .allowedMethods("GET", "OPTIONS")
                 .allowedHeaders("Content-Type", "Origin", "Accept", "Range")
                 .allowCredentials(true)
                 .maxAge(3600);
+        }
     }
 }

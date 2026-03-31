@@ -15,7 +15,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Locale;
 
 @RestController
 @RequestMapping("/v1/images")
@@ -34,27 +33,32 @@ public class ImageController {
             @RequestParam(defaultValue = "20") int size,
             @RequestParam(defaultValue = "displayOrder") String sort,
             @RequestParam(defaultValue = "asc") String direction) {
-        Image.Language l = parseLanguage(lang, Image.Language.class);
-        if (lang != null && !lang.isBlank() && l == null) return ApiResponse.error(400, "Invalid lang", null);
-        var resp = imageService.getImages(name, l, tags, isActive, page, size, sort, direction);
-        return ApiResponse.success(resp, "Images retrieved");
+        Image.Language language = CmsUtil.parseLanguage(lang, Image.Language.class);
+        if (lang != null && !lang.isBlank() && language == null) {
+            return ApiResponse.error(400, "Invalid lang", null);
+        }
+        return ApiResponse.success(
+                imageService.getImages(name, language, tags, isActive, page, size, sort, direction),
+                "Images retrieved");
     }
 
     @GetMapping("/{id}")
     public ApiResponse<ImageResponse> getImageById(@PathVariable String id) {
-        ImageResponse r = imageService.getImageById(id);
-        if (r == null) return ApiResponse.error(404, "Image not found", null);
-        return ApiResponse.success(r, "Image retrieved");
+        ImageResponse resp = imageService.getImageById(id);
+        if (resp == null) {
+            return ApiResponse.error(404, "Image not found", null);
+        }
+        return ApiResponse.success(resp, "Image retrieved");
     }
 
     @GetMapping("/view/{filename}")
     public ResponseEntity<Resource> viewImage(@PathVariable String filename) {
         try {
+            CmsUtil.validateFilename(filename);
             File file = imageService.getImageFile(filename);
             Resource resource = new FileSystemResource(file);
-            String contentType = CmsUtil.determineContentType(filename);
             return ResponseEntity.ok()
-                    .contentType(MediaType.parseMediaType(contentType))
+                    .contentType(MediaType.parseMediaType(CmsUtil.determineContentType(filename)))
                     .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + filename + "\"")
                     .body(resource);
         } catch (IllegalArgumentException e) {
@@ -62,15 +66,6 @@ public class ImageController {
         } catch (IOException e) {
             log.error("Error reading image file: {}", filename, e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        }
-    }
-
-    private <E extends Enum<E>> E parseLanguage(String lang, Class<E> enumClass) {
-        if (lang == null || lang.isBlank()) return null;
-        try {
-            return Enum.valueOf(enumClass, lang.toUpperCase(Locale.ROOT));
-        } catch (IllegalArgumentException ex) {
-            return null;
         }
     }
 }

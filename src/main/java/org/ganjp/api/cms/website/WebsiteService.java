@@ -1,7 +1,6 @@
 package org.ganjp.api.cms.website;
 
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.ganjp.api.cms.util.CmsUtil;
 import org.ganjp.api.core.model.PaginatedResponse;
 import org.springframework.beans.factory.annotation.Value;
@@ -14,7 +13,6 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-@Slf4j
 @Transactional(readOnly = true)
 public class WebsiteService {
     private final WebsiteRepository websiteRepository;
@@ -25,10 +23,8 @@ public class WebsiteService {
     public PaginatedResponse<WebsiteResponse> getWebsites(String name, Website.Language lang, String tags, Boolean isActive, int page, int size, String sort, String direction) {
         Pageable pageable = CmsUtil.buildPageable(page, size, sort, direction);
         Page<Website> pageResult = websiteRepository.searchWebsites(name, lang, tags, isActive, pageable);
-
-        List<WebsiteResponse> publicList = pageResult.getContent().stream().map(this::mapToResponse).toList();
-
-        return PaginatedResponse.of(publicList, pageResult.getNumber(), pageResult.getSize(), pageResult.getTotalElements());
+        List<WebsiteResponse> list = pageResult.getContent().stream().map(this::mapToResponse).toList();
+        return PaginatedResponse.of(list, pageResult.getNumber(), pageResult.getSize(), pageResult.getTotalElements());
     }
 
     public WebsiteResponse getWebsiteById(String id) {
@@ -39,7 +35,7 @@ public class WebsiteService {
 
     private WebsiteResponse mapToResponse(Website r) {
         String logoUrl = r.getLogoUrl();
-        if (logoUrl != null && !logoUrl.isBlank() && !logoUrl.startsWith("http") && logoBaseUrl != null && !logoBaseUrl.isBlank()) {
+        if (logoUrl != null && !logoUrl.isBlank() && !logoUrl.startsWith("http")) {
             logoUrl = CmsUtil.joinBaseAndPath(logoBaseUrl, logoUrl);
         }
         return WebsiteResponse.builder()
