@@ -17,7 +17,7 @@
 ---
 
 ## 1. Core Principles
-- **Read-Only First:** The public API is predominantly for fetching data (`GET`). Mutations (`POST`, `PUT`, `DELETE`) are generally handled by the `gjp-api-admin-springboot` project unless strictly required (like submitting a Question).
+- **Read-Only First:** The public API is predominantly for fetching data (`GET`). Mutations (`POST`, `PUT`, `DELETE`) are generally handled by the `gjp-admin-api-boot` project unless strictly required (like submitting a Question).
 - **Lombok Over Boilerplate:** Aggressively use Lombok (`@RequiredArgsConstructor`, `@Getter`, `@Setter`, `@Builder`, `@Slf4j`) to keep files small and readable.
 - **Fail Fast, Return Early:** Use inline guard clauses for null checks.
 

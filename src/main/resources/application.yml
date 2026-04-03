@@ -5,7 +5,7 @@ server:
 
 spring:
   application:
-    name: GJP-API-PUBLIC
+    name: GJP-PUBLIC-API-BOOT
   profiles:
     active: dev
   jackson:

@@ -14,10 +14,10 @@ import java.sql.Timestamp;
 @AllArgsConstructor
 public class ArticleImage {
     @Id
-    @Column(length = 36, nullable = false)
+    @Column(columnDefinition = "char(36)", nullable = false)
     private String id;
 
-    @Column(name = "article_id", length = 36, nullable = false)
+    @Column(name = "article_id", columnDefinition = "char(36)", nullable = false)
     private String articleId;
 
     @Column(name = "article_title", length = 500)
@@ -50,10 +50,10 @@ public class ArticleImage {
     @Column(name = "updated_at", nullable = false)
     private Timestamp updatedAt;
 
-    @Column(name = "created_by", length = 36)
+    @Column(name = "created_by", columnDefinition = "char(36)")
     private String createdBy;
 
-    @Column(name = "updated_by", length = 36)
+    @Column(name = "updated_by", columnDefinition = "char(36)")
     private String updatedBy;
 
     @Column(name = "is_active", nullable = false)

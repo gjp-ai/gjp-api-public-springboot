@@ -14,7 +14,7 @@ import java.sql.Timestamp;
 @AllArgsConstructor
 public class Audio {
     @Id
-    @Column(length = 36, nullable = false)
+    @Column(columnDefinition = "char(36)", nullable = false)
     private String id;
 
     @Column(length = 255, nullable = false)
@@ -61,10 +61,10 @@ public class Audio {
     @Column(name = "updated_at", nullable = false)
     private Timestamp updatedAt;
 
-    @Column(name = "created_by", length = 36)
+    @Column(name = "created_by", columnDefinition = "char(36)")
     private String createdBy;
 
-    @Column(name = "updated_by", length = 36)
+    @Column(name = "updated_by", columnDefinition = "char(36)")
     private String updatedBy;
 
     @Column(name = "is_active", nullable = false)

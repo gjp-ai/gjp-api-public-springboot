@@ -12,6 +12,7 @@ import java.sql.Timestamp;
 @AllArgsConstructor
 public class File {
     @Id
+    @Column(columnDefinition = "char(36)", nullable = false)
     private String id;
 
     private String name;
@@ -50,10 +51,10 @@ public class File {
     @Column(name = "updated_at")
     private Timestamp updatedAt;
 
-    @Column(name = "created_by")
+    @Column(name = "created_by", columnDefinition = "char(36)")
     private String createdBy;
 
-    @Column(name = "updated_by")
+    @Column(name = "updated_by", columnDefinition = "char(36)")
     private String updatedBy;
 
     @Column(name = "is_active")

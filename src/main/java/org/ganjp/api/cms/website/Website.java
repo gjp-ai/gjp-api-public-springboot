@@ -17,7 +17,7 @@ import java.time.LocalDateTime;
 public class Website {
 
     @Id
-    @Column(name = "id", length = 36)
+    @Column(name = "id", columnDefinition = "char(36)")
     private String id;
 
     @Column(name = "name", length = 128, nullable = false)

@@ -1,7 +1,7 @@
 {
 	"info": {
 		"name": "GJP API Public",
-		"description": "Public API collection for gjp-api-public-springboot.\n\nBase URL: http://localhost:8081/api\n\nAll endpoints are GET-only (read-only public API, no authentication required).",
+		"description": "Public API collection for gjp-public-api-boot.\n\nBase URL: http://localhost:8081/api\n\nAll endpoints are GET-only (read-only public API, no authentication required).",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
 	"variable": [
