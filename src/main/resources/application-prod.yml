@@ -24,6 +24,11 @@ cors:
     - https://ganjianping.com
     - https://www.ganjianping.com
 
+cms:
+  base-url: ${CMS_BASE_URL:https://www.ganjianping.com/ai-open-api}
+  upload:
+    root-directory: ${CMS_UPLOAD_ROOT_DIRECTORY:/var/www/gjp/upload}
+
 logging:
   level:
     org.ganjp.api: WARN
@@ -32,7 +37,3 @@ logging:
     name: logs/gjp-open-api-boot.log
   pattern:
     file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
-
-# ── CMS (prod overrides) ──
-cms:
-  base-url: ${CMS_BASE_URL:https://www.ganjianping.com/api}

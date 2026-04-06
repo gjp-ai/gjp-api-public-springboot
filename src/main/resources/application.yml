@@ -1,13 +1,14 @@
 server:
   port: 8084
   servlet:
-    context-path: /ai/
+    context-path: /ai-open-api/
 
 spring:
   application:
     name: GJP-PUBLIC-API-BOOT
   profiles:
-    active: dev
+    # active: dev
+    active: prod
   jackson:
     serialization:
       write-dates-as-timestamps: false
@@ -24,7 +25,7 @@ spring:
 cms:
   base-url: ${CMS_BASE_URL}
   upload:
-    root-directory: ${CMS_UPLOAD_DIR:${user.home}/Data/gjp-api/uploads}
+    root-directory: ${CMS_UPLOAD_DIR}
 
 article:
   cover-image:

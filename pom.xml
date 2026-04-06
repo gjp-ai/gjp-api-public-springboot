@@ -9,7 +9,7 @@
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>org.ganjp</groupId>
-	<artifactId>gjp-open-api</artifactId>
+	<artifactId>gjp-open-api-boot</artifactId>
 	<version>1.0.0</version>
 	<packaging>jar</packaging>
 	<name>GJP Open API</name>
@@ -102,6 +102,18 @@
 							<artifactId>lombok</artifactId>
 						</path>
 					</annotationProcessorPaths>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-maven-plugin</artifactId>
+				<configuration>
+					<excludes>
+						<exclude>
+							<groupId>org.projectlombok</groupId>
+							<artifactId>lombok</artifactId>
+						</exclude>
+					</excludes>
 				</configuration>
 			</plugin>
 			<plugin>
