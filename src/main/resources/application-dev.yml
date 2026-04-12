@@ -17,8 +17,10 @@ spring:
 cors:
   allowed-origins:
     - http://localhost:3000
+    - http://localhost:3001
     - http://localhost:8084
     - http://127.0.0.1:3000
+    - http://127.0.0.1:3001
     - http://127.0.0.1:8084
 
 logging:
@@ -30,6 +32,6 @@ logging:
 
 # ── CMS (dev overrides) ──
 cms:
-  base-url: ${CMS_BASE_URL:http://localhost:8084/api}
+  base-url: ${CMS_BASE_URL:http://localhost:8084/gjp-api}
   upload:
     root-directory: ${CMS_UPLOAD_DIR:${user.home}/Data/gjp-api/upload}
