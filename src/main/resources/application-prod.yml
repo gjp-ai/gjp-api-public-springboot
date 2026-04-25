@@ -25,7 +25,7 @@ cors:
     - https://www.ganjianping.com
 
 cms:
-  base-url: ${CMS_BASE_URL:https://www.ganjianping.com/gjp-api}
+  base-url: ${CMS_BASE_URL:https://www.ganjianping.com/api}
   upload:
     root-directory: ${CMS_UPLOAD_ROOT_DIRECTORY:/var/www/gjp/upload}
 
